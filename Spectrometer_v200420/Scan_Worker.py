@@ -77,7 +77,7 @@ class Scan_Worker(QRunnable):
 	def dateandtime(self):
 		
 		now = datetime.datetime.now()
-		sm1 = now.strftime("%Y %b %d - %H :%M :")
+		sm1 = now.strftime("%y.%m.%d - %H:%M:")
 		sm2 = format(float(str("%d.%d" %(now.second,now.microsecond))), '07.4f')
 		
 		return str("%s%s" %(sm1,sm2))
