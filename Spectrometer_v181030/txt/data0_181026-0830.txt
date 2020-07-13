@@ -1,3 +1,0 @@
-Detector type	MS257_IN [um]	MS257_OUT [um]	Signal	Mirror pos.	Shut.	Timetr.[s]	Abs date and time
-Keithley 	1.15000e+00 	1.15000e+00 	-2.309077	A	off	0008.12		181026 12:58:29.5417
-Agilent 	1.15000e+00 	1.15000e+00 	-1.845213	A	off	0009.13		181026 12:58:30.5436
