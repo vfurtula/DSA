@@ -1,0 +1,1 @@
+Detector type	MS257_IN [nm]	MS257_OUT [nm]	Signal	Mirror pos.	Shut.	Timetr.[s]	Abs date and time

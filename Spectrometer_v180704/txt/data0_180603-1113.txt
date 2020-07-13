@@ -1,0 +1,2 @@
+Your edit line - keep this line!
+Wl[nm]	Volt.[V]	Pos.	Shut.	Timetr.[s]	Abs date and time
