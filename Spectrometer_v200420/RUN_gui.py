@@ -1149,7 +1149,7 @@ class Run_gui(QMainWindow):
 			if self.write2txt_check:
 				self.textfile = ''.join([self.create_file(self.write2txt_str),".txt"])
 				if self.textfile!='.txt':
-					with open(self.textfile, 'w') as thefile:
+					with open(self.textfile, 'w', encoding="utf-8") as thefile:
 						thefile.write(''.join(["Detector type\tMS257_IN [",self.unit_str,"]\tMS257_OUT [",self.unit_str,"]\tSignal\tMirror pos.\tShut.\tTimetr.[s]\tAbs date and time\n"]))
 				else:
 					return False
@@ -1508,7 +1508,7 @@ class Run_gui(QMainWindow):
 		
 		if self.write2txt_check:
 			# Save to a readable textfile
-			with open(self.textfile, 'a') as thefile:
+			with open(self.textfile, 'a', encoding="utf-8") as thefile:
 				thefile.write("%s " %insttype_str)
 				thefile.write("\t%s " %ms257_in)
 				thefile.write("\t%s " %ms257_out)
@@ -1679,7 +1679,7 @@ class Run_gui(QMainWindow):
 		
 		if self.write2txt_check:
 			# Save to a readable textfile
-			with open(self.textfile, 'a') as thefile:
+			with open(self.textfile, 'a', encoding="utf-8") as thefile:
 				thefile.write("%s " %insttype_str)
 				thefile.write("\t%s " %ms257_in)
 				thefile.write("\t%s " %ms257_out)
@@ -1869,7 +1869,7 @@ class Run_gui(QMainWindow):
 		
 		if self.write2txt_check:
 			# Save to a readable textfile
-			with open(self.textfile, 'a') as thefile:
+			with open(self.textfile, 'a', encoding="utf-8") as thefile:
 				thefile.write("%s " %guvtype_str)
 				thefile.write("\t\t%s " %ms257_in)
 				thefile.write("\t%s " %ms257_out)
