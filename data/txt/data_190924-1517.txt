@@ -1,0 +1,3 @@
+Detector type	MS257_IN [nm]	MS257_OUT [nm]	Signal	Mirror pos.	Shut.	Timetr.[s]	Abs date and time
+K2001A (Δ) 	3.00000e+02 	3.00000e+02 	-0.8625	?	off	0002.48		190930 13:56:04.3067
+GUV-541 (Δ) 		3.00000e+02 	3.00000e+02 	[-1.6 -0.8 -0.2  0.6 -0.7]	?	off	0002.53		190930 13:56:04.3575
