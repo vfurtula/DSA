@@ -43,12 +43,12 @@ class K2001A:
 			return True
 		except (TypeError, ValueError):
 			pass
-
+		
 		return False
-  
-  ####################################################################
-  # K2001A functions
-  ####################################################################
+	
+	####################################################################
+	# K2001A functions
+	####################################################################
 	
 	def return_id(self):
 		if self.testmode:
@@ -56,7 +56,7 @@ class K2001A:
 		elif not self.testmode:
 			val = self.ser.query("*idn?")
 			return val
-	
+		
 	def set_dc_voltage(self):
 		if self.testmode:
 			return "Testmode: set_dc_voltage K2001A"
@@ -66,14 +66,11 @@ class K2001A:
 			self.ser.write(":sense:volt:dc:nplc 3")
 			#self.ser.write(":sense:volt:dc:rang:upp 15") #possibly bad resolution
 			self.ser.write(":sense:volt:dc:rang:auto 1")
-	
-	def return_voltage(self,*argv):
+			
+	def return_voltage(self):
 		if self.testmode:
 			time.sleep(0.1)
-			if argv:
-				return argv[0]+random.uniform(-1,1)
-			else:
-				return random.uniform(-1,1)
+			return random.uniform(-1,1)
 		elif not self.testmode:
 			#read digitized voltage value from the analog port number (dev)
 			while True:
@@ -84,14 +81,18 @@ class K2001A:
 					return float(val)
 				else:
 					print("Bad value returned from K2001A (read command):", val)
-	
+					
 	def close(self):
 		if self.testmode:
 			print("Testmode: K2001A stepper port flushed and closed")
 		elif not self.testmode:
 			self.ser.close()
 			print("Status: K2001A stepper port flushed and closed")
-			
+
+
+
+
+
 def main():
   
 	# call the sr510 port
@@ -99,7 +100,9 @@ def main():
 	
 	for i in range(10):
 		print(model_510.return_voltage())
-	
+
+
+
 if __name__ == "__main__":
 	
   main()

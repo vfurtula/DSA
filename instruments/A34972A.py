@@ -67,13 +67,10 @@ class A34972A:
 			self.ser.write(":conf:volt[:dc]")
 	
 	
-	def return_voltage(self,*argv):
+	def return_voltage(self,):
 		if self.testmode:
 			time.sleep(0.1)
-			if argv:
-				return argv[0]+random.uniform(-1,1)
-			else:
-				return random.uniform(-1,1)
+			return random.uniform(-1,1)
 		elif not self.testmode:
 			#read digitized voltage value from the analog port number (dev)
 			val = self.ser.query("meas:volt:dc? 1,0.003,(@101)")

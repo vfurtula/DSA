@@ -15,17 +15,21 @@ from PyQt5.QtCore import QObject, QThreadPool, QTimer, QRunnable, pyqtSignal, py
 				
 				
 				
-class Read_Worker(QRunnable):
+class K2001A_Worker(QRunnable):
 	'''
 	Worker thread
 	:param args: Arguments to make available to the run code
 	:param kwargs: Keywords arguments to make available to the run code
 	'''
 	def __init__(self,*argv):
-		super(Read_Worker, self).__init__()
+		super(K2001A_Worker, self).__init__()
 		# constants	
 		self.abort_flag=False
 		self.pause_flag=False
+		
+		self.inst_list=argv[0].inst_list
+		
+		self.signals = RUN_gui.WorkerSignals()
 		
 	def abort(self):
 		self.abort_flag=True
@@ -48,22 +52,94 @@ class Read_Worker(QRunnable):
 			time_elap=format(time.time()-time_start, '07.2f')
 			
 			if self.inst_list.get('K2001A'):
-				V_k2001a=format(self.inst_list.get('K2001A').return_voltage(self.pass_wl),'.6e')
+				V_k2001a=format(self.inst_list.get('K2001A').return_voltage(),'.6e')
 				self.signals.update_k2001a.emit([V_k2001a,time_elap])
 				
+				
+				
+				
+class A34972A_Worker(QRunnable):
+	'''
+	Worker thread
+	:param args: Arguments to make available to the run code
+	:param kwargs: Keywords arguments to make available to the run code
+	'''
+	def __init__(self,*argv):
+		super(A34972A_Worker, self).__init__()
+		# constants	
+		self.abort_flag=False
+		self.pause_flag=False
+		
+		self.inst_list=argv[0].inst_list
+		
+		self.signals = RUN_gui.WorkerSignals()
+		
+	def abort(self):
+		self.abort_flag=True
+		
+	def pause(self):
+		if self.pause_flag:
+			self.pause_flag=False
+		else:
+			self.pause_flag=True
+			
+	@pyqtSlot()
+	def run(self):
+		# First wait according to the specified delay for position A and position B
+		time_start=time.time()
+		# while dwelling record voltages, then get the last recoreded voltage and pass it
+		while not self.abort_flag:
+			while self.pause_flag:
+				time.sleep(0.1)
+				
+			time_elap=format(time.time()-time_start, '07.2f')
+			
 			if self.inst_list.get('A34972A'):
-				V_a34972a=format(self.inst_list.get('A34972A').return_voltage(self.pass_wl),'.6e')
+				V_a34972a=format(self.inst_list.get('A34972A').return_voltage(),'.6e')
 				self.signals.update_a34972a.emit([V_a34972a,time_elap])
 				
+				
+				
+class GUV_Worker(QRunnable):
+	'''
+	Worker thread
+	:param args: Arguments to make available to the run code
+	:param kwargs: Keywords arguments to make available to the run code
+	'''
+	def __init__(self,*argv):
+		super(GUV_Worker, self).__init__()
+		# constants	
+		self.abort_flag=False
+		self.pause_flag=False
+		
+		self.inst_list=argv[0].inst_list
+		
+		self.signals = RUN_gui.WorkerSignals()
+		
+	def abort(self):
+		self.abort_flag=True
+		
+	def pause(self):
+		if self.pause_flag:
+			self.pause_flag=False
+		else:
+			self.pause_flag=True
+			
+	@pyqtSlot()
+	def run(self):
+		# First wait according to the specified delay for position A and position B
+		time_start=time.time()
+		# while dwelling record voltages, then get the last recoreded voltage and pass it
+		while not self.abort_flag:
+			while self.pause_flag:
+				time.sleep(0.1)
+				
+			time_elap=format(time.time()-time_start, '07.2f')
+			
 			if self.inst_list.get('GUV'):
-				V_guv = self.inst_list.get('GUV').return_powden(self.pass_wl)
+				V_guv = self.inst_list.get('GUV').return_powden()
 				V_guv=[float(j) for j in [format(i,'.6e') for i in V_guv]]
 				self.signals.update_guv.emit([V_guv,time_elap])
-				
-			if self.inst_list.get('MS257_in') or self.inst_list.get('MS257_out'):
-				self.signals.update_wl_time.emit([self.step_wl,time_elap])
-				
-				
 				
 				
 				
@@ -180,14 +256,13 @@ class Scan_Worker(QRunnable):
 		
 		# set Keithely 2001A supply
 		# set Agilent 34972A supply
-		'''
+		
 		if self.inst_list.get('K2001A'):
 			self.inst_list.get('K2001A').set_dc_voltage()
+			
 		if self.inst_list.get('A34972A'):
 			self.inst_list.get('A34972A').set_dc_voltage()
-		if self.inst_list.get('GUV'):
-			self.inst_list.get('GUV').return_id()
-		'''
+		
 		if self.inst_list.get('MS257_in') or self.inst_list.get('MS257_out'):
 			print("The current monochromator position is:")
 			
@@ -201,7 +276,6 @@ class Scan_Worker(QRunnable):
 			
 			for new_position in wv_scanlist:
 				# abort the scan
-				self.pass_wl=new_position
 				
 				if self.abort_flag:
 					self.close_shutter()
@@ -259,7 +333,6 @@ class Scan_Worker(QRunnable):
 						if taeller_posA==0:
 							# record while DARK
 							self.close_shutter()
-							obj = self.read_signals()
 							taeller_posA+=1
 							
 						###############################################
@@ -277,7 +350,6 @@ class Scan_Worker(QRunnable):
 						# record while LIGHT
 						self.open_shutter()
 						self.my_legend = ''.join(["A-",u'\u0394'])
-						_ = self.read_signals(obj)
 						self.close_shutter()
 						
 						###############################################
@@ -295,7 +367,6 @@ class Scan_Worker(QRunnable):
 						
 						# record while DARK
 						self.close_shutter()
-						obj = self.read_signals()
 						
 						###############################################
 						
@@ -312,7 +383,6 @@ class Scan_Worker(QRunnable):
 						# record while LIGHT
 						self.open_shutter()
 						self.my_legend = ''.join(["A-",u'\u0394'])
-						_ = self.read_signals(obj)
 						self.close_shutter()
 						
 						###############################################
@@ -333,9 +403,8 @@ class Scan_Worker(QRunnable):
 							self.open_shutter()
 						
 						self.my_legend = ''.join(["A-",self.shutset.upper()])
-						_ = self.read_signals()
-						
 						self.close_shutter()
+						
 						###############################################
 					
 					# abort the scan
@@ -365,7 +434,6 @@ class Scan_Worker(QRunnable):
 						if taeller_posB==0:
 							# record while DARK
 							self.close_shutter()
-							obj = self.read_signals()
 							taeller_posB+=1
 						
 						###############################################
@@ -383,7 +451,6 @@ class Scan_Worker(QRunnable):
 						# record while LIGHT
 						self.open_shutter()
 						self.my_legend = ''.join(["B-",u'\u0394'])
-						_ = self.read_signals(obj)
 						self.close_shutter()
 						
 						###############################################
@@ -399,8 +466,7 @@ class Scan_Worker(QRunnable):
 						
 						# record while DARK
 						self.close_shutter()
-						obj=self.read_signals()
-							
+						
 						###############################################
 						
 						# abort the scan
@@ -416,7 +482,6 @@ class Scan_Worker(QRunnable):
 						# record while LIGHT
 						self.open_shutter()
 						self.my_legend = ''.join(["B-",u'\u0394'])
-						_ = self.read_signals(obj)
 						self.close_shutter()
 						
 						###############################################
@@ -437,7 +502,6 @@ class Scan_Worker(QRunnable):
 							self.open_shutter()
 						
 						self.my_legend = ''.join(["B-",self.shutset.upper()])
-						_ = self.read_signals()
 						
 						self.close_shutter()
 						###############################################
@@ -471,7 +535,6 @@ class Scan_Worker(QRunnable):
 						if taeller_posA==0:
 							# record while DARK
 							self.close_shutter()
-							obj = self.read_signals()
 							taeller_posA+=1
 						
 						###############################################
@@ -489,7 +552,6 @@ class Scan_Worker(QRunnable):
 						# record while LIGHT
 						self.open_shutter()
 						self.my_legend = ''.join(["A-",u'\u0394'])
-						_ = self.read_signals(obj)
 						self.close_shutter()
 						
 						###############################################
@@ -507,7 +569,6 @@ class Scan_Worker(QRunnable):
 						
 						# record while DARK
 						self.close_shutter()
-						obj=self.read_signals()
 						
 						###############################################
 						
@@ -524,8 +585,8 @@ class Scan_Worker(QRunnable):
 						# record while LIGHT
 						self.open_shutter()
 						self.my_legend = ''.join(["A-",u'\u0394'])
-						_ = self.read_signals(obj)
 						self.close_shutter()
+						
 						###############################################
 						
 					else:
@@ -546,9 +607,8 @@ class Scan_Worker(QRunnable):
 							self.open_shutter()
 						
 						self.my_legend = ''.join(["A-",self.shutset.upper()])
-						_ = self.read_signals()
-						
 						self.close_shutter()
+						
 						###############################################
 				
 				# Set the MIRROR in the B position
@@ -580,7 +640,6 @@ class Scan_Worker(QRunnable):
 						if taeller_posB==0:
 							# record while DARK
 							self.close_shutter()
-							obj = self.read_signals()
 							taeller_posB+=1
 						
 						###############################################
@@ -598,8 +657,8 @@ class Scan_Worker(QRunnable):
 						# record while LIGHT
 						self.open_shutter()
 						self.my_legend = ''.join([self.posset,"-",u'\u0394'])
-						_ = self.read_signals(obj)
 						self.close_shutter()
+						
 						###############################################
 					
 					elif self.shutset=="on<->off":
@@ -615,7 +674,6 @@ class Scan_Worker(QRunnable):
 						
 						# record while DARK
 						self.close_shutter()
-						obj=self.read_signals()
 						
 						###############################################
 						
@@ -632,8 +690,8 @@ class Scan_Worker(QRunnable):
 						# record while LIGHT
 						self.open_shutter()
 						self.my_legend = ''.join([self.posset,"-",u'\u0394'])
-						_ = self.read_signals(obj)
 						self.close_shutter()
+						
 						###############################################
 					
 					else:
@@ -654,141 +712,10 @@ class Scan_Worker(QRunnable):
 							self.open_shutter()
 						
 						self.my_legend = ''.join([self.posset,"-",self.shutset.upper()])
-						_ = self.read_signals()
-						
 						self.close_shutter()
 					
 		# Close the shutter and prevent light from coming out
 		self.close_shutter()
-		
-		
-	def read_signals(self,*tupl):
-		
-		# First wait according to the specified delay for position A and position B
-		if self.inst_list.get('Oriel'):
-			if self.posset=="A":
-				time_start_=time.time()
-				while (time.time()-time_start_)<self.posA_delay and not self.abort_flag:
-					time.sleep(0.01)
-			elif self.posset=="B":
-				time_start_=time.time()
-				while (time.time()-time_start_)<self.posB_delay and not self.abort_flag:
-					time.sleep(0.01)
-		else:
-			time_start_=time.time()
-			while (time.time()-time_start_)<self.posB_delay and not self.abort_flag:
-				time.sleep(0.01)
-		
-		self.signals.update_movie.emit('stop')
-		
-		# Start reading the data signals from the instruments
-		if tupl:
-			tupl, = tupl
-		
-		V_k2001a=None
-		V_a34972a=None
-		V_guv=None
-		
-		time_start_=time.time()
-		# while dwelling record voltages, then get the last recoreded voltage and pass it
-		while (time.time()-time_start_)<self.dwell and not self.abort_flag:
-			time_elap=format(time.time()-self.time_start, '07.2f')
-			
-			if self.inst_list.get('K2001A'):
-				V_k2001a=format(self.inst_list.get('K2001A').return_voltage(self.pass_wl),'.6e')
-				self.signals.update_all_k2001a.emit([V_k2001a,time_elap])
-			if self.inst_list.get('A34972A'):
-				V_a34972a=format(self.inst_list.get('A34972A').return_voltage(self.pass_wl),'.6e')
-				self.signals.update_all_a34972a.emit([V_a34972a,time_elap])
-			if self.inst_list.get('GUV'):
-				V_guv = self.inst_list.get('GUV').return_powden(self.pass_wl)
-				V_guv=[float(j) for j in [format(i,'.6e') for i in V_guv]]
-				self.signals.update_all_guv.emit([V_guv,time_elap])
-			if self.inst_list.get('MS257_in') or self.inst_list.get('MS257_out'):
-				self.signals.update_wl_time.emit([self.step_wl,time_elap])
-				if [V_k2001a,V_a34972a,V_guv]==[None,None,None]:
-					time.sleep(0.1)
-				
-				
-		if V_k2001a is not None:
-			val=[]
-			for i in range(self.avgpts):
-				val.extend([self.inst_list.get('K2001A').return_voltage(self.pass_wl)])
-				if self.abort_flag:
-					self.close_shutter()
-					return
-			V_k2001a=float(format(numpy.mean(val),'.6e'))
-			if tupl:
-				if tupl.get('V_k2001a') is not None:
-					dark_vals = float(tupl.get('V_k2001a'))
-					V_k2001a = float(format(V_k2001a-dark_vals,'.6e'))
-					
-			if self.update_end_vals:
-				if self.inst_list.get('MS257_in') and self.inst_list.get('MS257_out'):
-					time_elap=format(time.time()-self.time_start, '07.2f')
-					self.signals.update_end_k2001a.emit([self.ms257_in,self.ms257_out,self.step_wl,V_k2001a,time_elap,self.dateandtime(),self.my_legend])
-				elif self.inst_list.get('MS257_in') and not self.inst_list.get('MS257_out'):
-					time_elap=format(time.time()-self.time_start, '07.2f')
-					self.signals.update_end_k2001a.emit([self.ms257_in, str(None), self.step_wl,V_k2001a,time_elap,self.dateandtime(),self.my_legend])
-				elif not self.inst_list.get('MS257_in') and self.inst_list.get('MS257_out'):
-					time_elap=format(time.time()-self.time_start, '07.2f')
-					self.signals.update_end_k2001a.emit([str(None), self.ms257_out, self.step_wl,V_k2001a,time_elap,self.dateandtime(),self.my_legend])
-					
-					
-		if V_a34972a is not None:
-			val=[]
-			for i in range(self.avgpts):
-				val.extend([self.inst_list.get('A34972A').return_voltage(self.pass_wl)])
-				if self.abort_flag:
-					self.close_shutter()
-					return
-			V_a34972a=float(format(numpy.mean(val),'.6e'))
-			
-			if tupl:
-				if tupl.get('V_a34972a') is not None:
-					dark_vals = float(tupl.get('V_a34972a'))
-					V_a34972a = float(format(V_a34972a-dark_vals,'.6e'))
-					
-			if self.update_end_vals:
-				if self.inst_list.get('MS257_in') and self.inst_list.get('MS257_out'):
-					time_elap=format(time.time()-self.time_start, '07.2f')
-					self.signals.update_end_a34972a.emit([self.ms257_in,self.ms257_out,self.step_wl,V_a34972a,time_elap,self.dateandtime(),self.my_legend])
-				elif self.inst_list.get('MS257_in') and not self.inst_list.get('MS257_out'):
-					time_elap=format(time.time()-self.time_start, '07.2f')
-					self.signals.update_end_a34972a.emit([self.ms257_in, str(None), self.step_wl,V_a34972a,time_elap,self.dateandtime(),self.my_legend])
-				elif not self.inst_list.get('MS257_in') and self.inst_list.get('MS257_out'):
-					time_elap=format(time.time()-self.time_start, '07.2f')
-					self.signals.update_end_a34972a.emit([str(None),self.ms257_out,self.step_wl,V_a34972a,time_elap,self.dateandtime(),self.my_legend])
-			
-			
-		if V_guv is not None:
-			val=[]
-			for i in range(self.avgpts):
-				Vguv = self.inst_list.get('GUV').return_powden(self.pass_wl)
-				val.append(Vguv)
-				if self.abort_flag:
-					self.close_shutter()
-					return
-			V_guv=[float(format(i,'.6e')) for i in numpy.mean(val,axis=0)]
-			
-			if tupl:
-				if tupl.get('V_guv') is not None:
-					dark_vals = [float(i) for i in tupl.get('V_guv')]
-					V_guv = numpy.array(V_guv)-numpy.array(dark_vals)
-				
-			if self.update_end_vals:
-				if self.inst_list.get('MS257_in') and self.inst_list.get('MS257_out'):
-					time_elap=format(time.time()-self.time_start, '07.2f')
-					self.signals.update_end_guv.emit([self.ms257_in,self.ms257_out,self.step_wl,V_guv,time_elap,self.dateandtime(),self.my_legend])
-				elif self.inst_list.get('MS257_in') and not self.inst_list.get('MS257_out'):
-					time_elap=format(time.time()-self.time_start, '07.2f')
-					self.signals.update_end_guv.emit([self.ms257_in, str(None), self.step_wl,V_guv,time_elap,self.dateandtime(),self.my_legend])
-				elif not self.inst_list.get('MS257_in') and self.inst_list.get('MS257_out'):
-					time_elap=format(time.time()-self.time_start, '07.2f')
-					self.signals.update_end_guv.emit([str(None), self.ms257_out,self.step_wl,V_guv,time_elap,self.dateandtime(),self.my_legend])
-					
-		tupl={'V_k2001a':V_k2001a, 'V_a34972a':V_a34972a , 'V_guv':V_guv}
-		return tupl
 		
 		
 	def close_shutter(self):
@@ -829,13 +756,6 @@ class Scan_Worker(QRunnable):
 			self.signals.update_oriel.emit(my_str)
 			print("Mirror position",my_str)
 			self.posset = my_str
-					
-					
-					
-					
-					
-					
-					
 					
 					
 					

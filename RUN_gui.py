@@ -9,7 +9,7 @@ Created on Fri Jan 12 09:06:01 2018
 
 import traceback, sys, os, sqlite3, itertools, collections, configparser, getpass, h5py
 import re, serial, time, datetime, numpy, random, yagmail, visa, scipy.io
-import Scan_Worker
+import Thread_Worker
 from matplotlib import cm
 import matplotlib.pyplot as plt
 from mpl_toolkits.mplot3d import Axes3D
@@ -290,27 +290,27 @@ class Run_gui(QMainWindow):
 		posA_delay_lbl = QLabel("Pos A",self)
 		posA_delay_lbl.setStyleSheet("QWidget {background-color: lightGreen}")
 		self.combo6 = QComboBox(self)
-		self.mylist6=["0","1","5","10","15","20","25", "30"]
-		self.combo6.addItems(self.mylist6)
-		self.combo6.setCurrentIndex(self.mylist6.index(str(self.posA_delay)))
+		self.mylist6=[0,1,5,10,15,20,25,30]
+		self.combo6.addItems([str(i) for i in self.mylist6])
+		self.combo6.setCurrentIndex(self.mylist6.index(self.posA_delay))
 		
 		##############################################
 		
 		self.posB_delay_lbl = QLabel("Pos B",self)
 		self.posB_delay_lbl.setStyleSheet("QWidget {background-color: lightGreen}")
 		self.combo7 = QComboBox(self)
-		self.mylist7=["0","1","5","10","15","20","25", "30"]
-		self.combo7.addItems(self.mylist7)
-		self.combo7.setCurrentIndex(self.mylist7.index(str(self.posB_delay)))
+		self.mylist7=[0,1,5,10,15,20,25,30]
+		self.combo7.addItems([str(i) for i in self.mylist7])
+		self.combo7.setCurrentIndex(self.mylist7.index(self.posB_delay))
 		
 		##############################################
 		
 		posAB_delay_lbl = QLabel("->A<->B<-",self)
 		posAB_delay_lbl.setStyleSheet("QWidget {background-color: lightGreen}")
 		self.combo11 = QComboBox(self)
-		self.mylist11=["0.0","1.0","1.5","2.0","2.5","3.0","3.5","4.0"]
-		self.combo11.addItems(self.mylist11)
-		self.combo11.setCurrentIndex(self.mylist11.index(str(self.posAB_delay)))
+		self.mylist11=[0,1,2,3,4,5]
+		self.combo11.addItems([str(i) for i in self.mylist11])
+		self.combo11.setCurrentIndex(self.mylist11.index(self.posAB_delay))
 		
 		##############################################
 		
@@ -320,18 +320,18 @@ class Run_gui(QMainWindow):
 		avgptsA_lbl = QLabel("Pos A",self)
 		avgptsA_lbl.setStyleSheet("QWidget {background-color: lightBlue}")
 		self.combo8 = QComboBox(self)
-		self.mylist8=["1","5","10","20","50","100","200"]
-		self.combo8.addItems(self.mylist8)
-		self.combo8.setCurrentIndex(self.mylist8.index(str(self.avgpts_a)))
+		self.mylist8=[1,5,10,20,50,100,200,300]
+		self.combo8.addItems([str(i) for i in self.mylist8])
+		self.combo8.setCurrentIndex(self.mylist8.index(self.avgpts_a))
 		
 		##############################################
 		
 		self.avgptsB_lbl = QLabel("Pos B",self)
 		self.avgptsB_lbl.setStyleSheet("QWidget {background-color: lightBlue}")
 		self.combo10 = QComboBox(self)
-		self.mylist10=["1","5","10","20","50","100","200"]
-		self.combo10.addItems(self.mylist10)
-		self.combo10.setCurrentIndex(self.mylist10.index(str(self.avgpts_b)))
+		self.mylist10=[1,5,10,20,50,100,200,300]
+		self.combo10.addItems([str(i) for i in self.mylist10])
+		self.combo10.setCurrentIndex(self.mylist10.index(self.avgpts_b))
 		
 		##############################################
 		
@@ -351,9 +351,9 @@ class Run_gui(QMainWindow):
 		schroll_lbl = QLabel("Schroll elapsed time [pts]:",self)
 		schroll_lbl.setStyleSheet("QWidget {color: blue}")
 		self.combo12 = QComboBox(self)
-		self.mylist12=["100","200","400","600","800","1000","1500","2000"]
-		self.combo12.addItems(self.mylist12)
-		self.combo12.setCurrentIndex(self.mylist12.index( str(self.schroll_pts) ))
+		self.mylist12=[100,200,400,600,800,1000,1500,2000]
+		self.combo12.addItems([str(i) for i in self.mylist12])
+		self.combo12.setCurrentIndex(self.mylist12.index(self.schroll_pts))
 		
 		##############################################
 		
@@ -795,13 +795,13 @@ class Run_gui(QMainWindow):
 		self.combo3.setCurrentIndex(self.mylist3.index(self.unit_str))
 		self.combo4.setCurrentIndex(self.mylist4.index(self.shutset))
 		self.combo5.setCurrentIndex(self.mylist5.index(self.posset))
-		self.combo6.setCurrentIndex(self.mylist6.index(str(self.posA_delay)))
-		self.combo7.setCurrentIndex(self.mylist7.index(str(self.posB_delay)))
-		self.combo8.setCurrentIndex(self.mylist8.index(str(self.avgpts_a)))
+		self.combo6.setCurrentIndex(self.mylist6.index(self.posA_delay))
+		self.combo7.setCurrentIndex(self.mylist7.index(self.posB_delay))
+		self.combo8.setCurrentIndex(self.mylist8.index(self.avgpts_a))
 		self.combo9.setCurrentIndex(self.mylist9.index(self.grating_str))
-		self.combo10.setCurrentIndex(self.mylist10.index(str(self.avgpts_b)))
-		self.combo11.setCurrentIndex(self.mylist11.index(str(self.posAB_delay)))
-		self.combo12.setCurrentIndex(self.mylist12.index(str(self.schroll_pts)))
+		self.combo10.setCurrentIndex(self.mylist10.index(self.avgpts_b))
+		self.combo11.setCurrentIndex(self.mylist11.index(self.posAB_delay))
+		self.combo12.setCurrentIndex(self.mylist12.index(self.schroll_pts))
 		
 		self.mylist13=self.get_scan_sections()
 		self.combo13.clear()
@@ -880,7 +880,7 @@ class Run_gui(QMainWindow):
 		self.avgpts_b=int(text)
 		
 	def onActivated11(self, text):
-		self.posAB_delay=float(text)
+		self.posAB_delay=int(text)
 		
 	def onActivated12(self, text):
 		self.schroll_pts=int(text)
@@ -1333,26 +1333,39 @@ class Run_gui(QMainWindow):
 		
 		obj = type('setscan_obj',(object,),{'inst_list':self.inst_list, 'unit':self.unit_str, 'grating':self.grating_str, 'avgpts':[self.avgpts_a,self.avgpts_b], 'shutter_list':shutter_list, 'pos_list':pos_list, 'sssd':self.sssd})
 		
-		self.worker=Scan_Worker.Scan_Worker(obj)
+		#####################################################################
 		
-		self.worker.signals.update_movie.connect(self.update_movie)
+		self.worker_scan=Thread_Worker.Scan_Worker(obj)
+		self.worker_scan.signals.update_movie.connect(self.update_movie)
+		self.worker_scan.signals.update_wl_time.connect(self.update_wl_time)
+		self.worker_scan.signals.update_shutter.connect(self.update_shutter)
+		self.worker_scan.signals.update_oriel.connect(self.update_oriel)
+		self.worker_scan.signals.finished.connect(self.finished)
 		
-		self.worker.signals.update_all_k2001a.connect(self.update_all_k2001a)
-		self.worker.signals.update_all_a34972a.connect(self.update_all_a34972a)
-		self.worker.signals.update_all_guv.connect(self.update_all_guv)
+		#####################################################################
 		
-		self.worker.signals.update_end_k2001a.connect(self.update_end_k2001a)
-		self.worker.signals.update_end_a34972a.connect(self.update_end_a34972a)
-		self.worker.signals.update_end_guv.connect(self.update_end_guv)
+		self.worker_k2001a=Thread_Worker.K2001A_Worker(obj)
+		self.worker_k2001a.signals.update_k2001a.connect(self.update_k2001a)
+		self.worker_k2001a.signals.finished.connect(self.finished)
 		
-		self.worker.signals.update_wl_time.connect(self.update_wl_time)
-		self.worker.signals.update_shutter.connect(self.update_shutter)
-		self.worker.signals.update_oriel.connect(self.update_oriel)
-		self.worker.signals.finished.connect(self.finished)
+		#####################################################################
 		
+		self.worker_a34972a=Thread_Worker.A34972A_Worker(obj)
+		self.worker_a34972a.signals.update_a34972a.connect(self.update_a34972a)
+		self.worker_a34972a.signals.finished.connect(self.finished)
+		
+		#####################################################################
+		
+		self.worker_guv=Thread_Worker.GUV_Worker(obj)
+		self.worker_guv.signals.update_guv.connect(self.update_guv)
+		self.worker_guv.signals.finished.connect(self.finished)
+		
+		#####################################################################
 		# Execute
-		self.threadpool.start(self.worker)
-		
+		self.threadpool.start(self.worker_scan)
+		self.threadpool.start(self.worker_k2001a)
+		self.threadpool.start(self.worker_a34972a)
+		self.threadpool.start(self.worker_guv)
 		
 		
 	def update_movie(self,pyqt_object):
@@ -1382,7 +1395,7 @@ class Run_gui(QMainWindow):
 				self.c_k2001a_end_Aoff.setData(self.wl_k2001a_end_Aoff, numpy.abs(self.volt_k2001a_end_Aoff))
 				if len(self.wl_k2001a_end_Aoff)==1:
 					self.my_legend.addItem(self.c_k2001a_end_Aoff, name=''.join(['K2001A, ',my_legend]))
-			
+					
 		elif self.posnow in ["B","?"]:
 			if self.shutnow=="on":
 				self.wl_k2001a_end_Bon.extend([ wl ])
@@ -1544,7 +1557,7 @@ class Run_gui(QMainWindow):
 		self.time_counter+=1
 		
 		#################################################
-			
+		
 		if self.posnow=="A":
 			if self.shutnow=="on":
 				self.wl_a34972a_end_Aon.extend([ wl ])
@@ -2652,7 +2665,7 @@ class Run_gui(QMainWindow):
 			self.posnow = self.config.get(self.last_used_scan,"pos").strip().split(',')[1]
 			self.posA_delay = int(self.config.get(self.last_used_scan,"posA_delay"))
 			self.posB_delay = int(self.config.get(self.last_used_scan,"posB_delay"))
-			self.posAB_delay = float(self.config.get(self.last_used_scan,"posAB_delay"))
+			self.posAB_delay = int(self.config.get(self.last_used_scan,"posAB_delay"))
 			
 			self.shutset = self.config.get(self.last_used_scan,"shutter").strip().split(',')[0]
 			self.shutnow = self.config.get(self.last_used_scan,"shutter").strip().split(',')[1]
@@ -2803,7 +2816,7 @@ class Run_gui(QMainWindow):
 			
 			event.accept()
 		else:
-		  event.ignore()
+			event.ignore()
 		  
 		  
 	def save_plots(self):

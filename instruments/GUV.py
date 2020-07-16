@@ -120,7 +120,7 @@ class GUV:
 				return data_
 			
 			
-	def return_powden(self,*argv):
+	def return_powden(self):
 		
 		if self.my_vars[2]=="GUV-541":
 			#print("GUV-541")
@@ -141,10 +141,7 @@ class GUV:
 				data = self.guv.recv(1024)
 				data = data.decode().strip().split(',')
 			if self.testmode:
-				if argv:
-					data = [format(argv[0]+random.uniform(-1,1),'.3e') for i in range(random.randint(20,40))]
-				else:
-					data = [format(random.uniform(-1,1),'.3e') for i in range(random.randint(20,40))]
+				data = [format(random.uniform(-1,1),'.3e') for i in range(random.randint(20,40))]
 				time.sleep(0.05)
 			
 			##############################################################
